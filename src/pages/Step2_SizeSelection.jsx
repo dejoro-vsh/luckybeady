@@ -5,9 +5,14 @@ import Button from '../components/Button';
 import './Step2.css';
 
 const SIZES = [
-  { id: 4, label: '4 mm', desc: 'เล็กมินิมอล' },
-  { id: 6, label: '6 mm', desc: 'พอดีข้อมือ' },
-  { id: 8, label: '8 mm', desc: 'เด่นชัดสวยงาม' }
+  { id: 5, label: '5 mm', desc: '' },
+  { id: 6, label: '6 mm', desc: '' },
+  { id: 7, label: '7 mm', desc: '' },
+  { id: 8, label: '8 mm', desc: '' },
+  { id: 9, label: '9 mm', desc: '' },
+  { id: 10, label: '10 mm', desc: '' },
+  { id: 11, label: '11 mm', desc: '' },
+  { id: 12, label: '12 mm', desc: '' }
 ];
 
 export default function Step2_SizeSelection({ onNext, onPrev, onUpdateData, currentSize }) {
@@ -45,17 +50,7 @@ export default function Step2_SizeSelection({ onNext, onPrev, onUpdateData, curr
           ))}
         </div>
 
-        <button 
-          className={`mix-size-btn ${selectedSize === 'mix' ? 'active' : ''}`}
-          onClick={() => setSelectedSize('mix')}
-        >
-          <div className="mix-beads">
-            <div className="bead-preview" style={{ width: '12px', height: '12px' }}></div>
-            <div className="bead-preview" style={{ width: '24px', height: '24px' }}></div>
-            <div className="bead-preview" style={{ width: '18px', height: '18px' }}></div>
-          </div>
-          <span>ผสมหลายขนาด</span>
-        </button>
+
       </div>
 
       <div className="card illustration-card">
