@@ -12,7 +12,7 @@ export default function Header({ subtitle, date }) {
           </svg>
         </button>
         <div className="brand-logo">
-          <h2>LUCY SUMMER</h2>
+          <h2>LuckyBeady</h2>
           {subtitle && <p className="subtitle">{subtitle}</p>}
           {date && <p className="date">{date}</p>}
         </div>
