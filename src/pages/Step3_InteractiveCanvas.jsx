@@ -103,7 +103,7 @@ export default function Step3_InteractiveCanvas({ onNext, onPrev, onUpdateData, 
 
       <div className="canvas-area">
         <div className="canvas-center">
-          <div className="watermark">LuckyBeady</div>
+          <div className="watermark">LuckyBeady By YU</div>
           {getCanvasCircles()}
         </div>
         <div className="canvas-actions">

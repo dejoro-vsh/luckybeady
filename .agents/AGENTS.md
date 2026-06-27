@@ -23,7 +23,7 @@ This file serves as the "central brain" to ensure all agents understand the core
 ## UI/UX Design References
 
 ### Step 1: Wrist Measurement (วัดข้อมือ)
-- **Brand Header:** Shows brand name "LuckyBeady" with a logo and a Home icon on the top left.
+- **Brand Header:** Shows brand name "LuckyBeady By YU" with a logo and a Home icon on the top left.
 - **Progress Indicator:** "CUSTOM BEADS BRACELET - STEP 1 / 4 - วัดข้อมือ" with a visual progress bar indicating step 1 of 4.
 - **Main Card (วัดขนาดข้อมือ):**
   - **Instruction:** "วัดรอบข้อมือแบบพอดี (หน่วยเซนติเมตร)" (Measure exact wrist size in cm).
@@ -34,7 +34,7 @@ This file serves as the "central brain" to ensure all agents understand the core
 - **Footer Action:** A full-width fixed button at the bottom labeled "ถัดไป" (Next) with a dark navy/blue color.
 
 ### Step 2: Stone Size Selection (เลือกขนาดหิน)
-- **Brand Header:** Shows brand name "LuckyBeady" with a logo and a Home icon on the top left.
+- **Brand Header:** Shows brand name "LuckyBeady By YU" with a logo and a Home icon on the top left.
 - **Progress Indicator:** "CUSTOM BEADS BRACELET - STEP 2 / 4 - เลือกขนาดหิน" with a visual progress bar indicating step 2 of 4.
 - **Main Card (ขนาดหิน):**
   - **Instruction:** "เลือกขนาดเม็ดที่ต้องการ (ขนาดเส้นผ่านศูนย์กลางของหิน)" (Select desired bead size in diameter).
@@ -51,11 +51,11 @@ This file serves as the "central brain" to ensure all agents understand the core
   - "ถัดไป" (Next): Dark navy/blue color (Primary action).
 
 ### Step 3: Interactive Canvas & Stone Selection (ออกแบบกำไล)
-- **Brand Header:** Shows brand name "LuckyBeady" with a logo and a Home icon on the top left.
+- **Brand Header:** Shows brand name "LuckyBeady By YU" with a logo and a Home icon on the top left.
 - **Progress Indicator:** "CUSTOM BEADS BRACELET - STEP 3 / 4 - ออกแบบกำไล" with a visual progress bar indicating step 3 of 4.
 - **Main Visual Canvas Card:**
   - **Top Info:** Left shows selected configuration (e.g., "เม็ด 8mm - ข้อมือ 17.5 cm"). Right shows dynamic price (e.g., "฿0") and bead count (e.g., "0 / 24 เม็ด").
-  - **Canvas Area:** A circular arrangement of empty dashed circles (numbered 1 to 24 in this example) representing the bracelet layout. Faint brand watermark "LuckyBeady" in the center.
+  - **Canvas Area:** A circular arrangement of empty dashed circles (numbered 1 to 24 in this example) representing the bracelet layout. Faint brand watermark "LuckyBeady By YU" in the center.
   - **Canvas Actions:** Two buttons at the bottom left of the canvas: "ย้อนกลับ" (Undo) and "รีเซ็ตกำไล" (Reset bracelet).
   - **Disclaimer:** Small text at the bottom right of the canvas ("*ภาพใช้เพื่อจำลองการออกแบบเท่านั้น สีและลักษณะอาจมีความแตกต่างเล็กน้อย").
 - **Filter Bar:** A horizontal scrollable row of pill-shaped buttons for filtering stone colors: "ทั้งหมด" (All, default active), "น้ำเงิน" (Blue), "ชมพู" (Pink), "ดำ" (Black), "เทา" (Gray), "เหลือง" (Yellow).
@@ -77,13 +77,13 @@ This file serves as the "central brain" to ensure all agents understand the core
   - **Recent Filter:** The filter bar includes a "ล่าสุด ⏱️" (Recent) filter, allowing users to quickly access previously selected stones.
 
 ### Step 4: Order Summary & Checkout (สรุปการสั่งซื้อ)
-- **Brand Header:** Shows brand name "LuckyBeady", personalized subtitle "for [Customer Name]", and the current date (e.g., "27 มิถุนายน 2569").
+- **Brand Header:** Shows brand name "LuckyBeady By YU", personalized subtitle "for [Customer Name]", and the current date (e.g., "27 มิถุนายน 2569").
 - **Final Design Image:** A large static render of the completed custom bracelet.
 - **Specification Summary Box:** Displays Wrist Size (e.g., "17.5 cm"), Bracelet Length (e.g., "19.5 cm"), Stone Size (e.g., "8 mm"), and Total Elements (e.g., "24 เม็ด + 1 Charm").
 - **Bill of Materials (BOM) List:** A detailed itemized receipt showing every stone/element selected, its quantity, and subtotal (e.g., "Aquamarine 5A (Blue Sky) x 2 ... ฿270").
 - **Pricing & Discount Section:**
   - Original Total Price (crossed out, e.g., 2,897 ฿).
-  - A prominent green promotional banner: "ลดทันที 20% เมื่อสั่งซื้อผ่าน LINE @LuckyBeady" (Instant 20% discount when ordering via LINE).
+  - A prominent green promotional banner: "ลดทันที 20% เมื่อสั่งซื้อผ่าน LINE @LuckyBeady By YU" (Instant 20% discount when ordering via LINE).
   - Final Special Price in large green text (e.g., 2,318 ฿).
 - **Stone Meanings (ความหมายของหิน):** An educational section listing all selected stones with their images, names, and a descriptive paragraph explaining their astrological or emotional benefits (e.g., Aquamarine for calmness, Rose Quartz for love).
 - **Footer Notes:** Disclaimer about natural stone color variations and a note that a real photo will be sent before shipping. Includes a LINE contact button for inquiries.

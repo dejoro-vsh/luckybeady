@@ -47,7 +47,7 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
     if (/android|iPad|iPhone|iPod/i.test(userAgent)) {
       alert("Simulating LINE Flex Message sending... (Redirecting to LINE OA)");
-      window.location.href = "https://line.me/R/ti/p/@LuckyBeady";
+      window.location.href = "https://line.me/R/ti/p/@LuckyBeadyByYU";
     } else {
       alert("สแกนคิวอาร์โค้ดเพื่อเพิ่มเพื่อน LINE และยืนยันการสั่งซื้อ");
     }
@@ -98,7 +98,7 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
             <span className="strike">฿{totalPrice.toLocaleString()}</span>
           </div>
           <div className="discount-banner">
-            ลดทันที 20% เมื่อสั่งซื้อผ่าน LINE @LuckyBeady
+            ลดทันที 20% เมื่อสั่งซื้อผ่าน LINE @LuckyBeady By YU
           </div>
           <div className="final-price">
             <span>ราคาพิเศษ</span>
@@ -123,7 +123,7 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
       <div className="footer-notes">
         *สีของหินธรรมชาติอาจมีความแตกต่างจากภาพจำลองเล็กน้อย ทางร้านจะจัดส่งภาพถ่ายสินค้าจริงให้ตรวจสอบก่อนจัดส่งเสมอ
         <br/><br/>
-        <Button variant="outline" className="contact-btn">สอบถาม / สั่งทำได้ที่ LINE @LuckyBeady</Button>
+        <Button variant="outline" className="contact-btn">สอบถาม / สั่งทำได้ที่ LINE @LuckyBeady By YU</Button>
       </div>
 
       <div className="footer-action dual-action checkout-action">
