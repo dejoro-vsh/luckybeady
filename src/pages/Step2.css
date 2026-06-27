@@ -1,0 +1,80 @@
+.size-options-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.size-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.size-card.active {
+  border-color: var(--primary-color);
+  background-color: #f8fafc;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.bead-preview-container {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.bead-preview {
+  background-color: #ffb6c1; /* Pink bead representation */
+  border-radius: 50%;
+  box-shadow: inset -2px -2px 4px rgba(0,0,0,0.2), 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.size-label {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.mix-size-btn {
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background-color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-main);
+  transition: all 0.2s;
+}
+
+.mix-size-btn.active {
+  border-color: var(--primary-color);
+  background-color: #f8fafc;
+}
+
+.mix-beads {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dual-action {
+  display: flex;
+  gap: 1rem;
+}
+
+.flex-1 {
+  flex: 1;
+}

@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import Step1_WristMeasurement from './pages/Step1_WristMeasurement'
+import Step2_SizeSelection from './pages/Step2_SizeSelection'
+import Step3_InteractiveCanvas from './pages/Step3_InteractiveCanvas'
+import Step4_CheckoutSummary from './pages/Step4_CheckoutSummary'
 import './styles/global.css'
 
 function App() {
@@ -8,7 +11,8 @@ function App() {
     wristSize: 0,
     ownerName: '',
     stoneSize: 0,
-    braceletConfig: [] // { position, item }
+    braceletConfig: [], // array of items
+    totalPrice: 0
   })
 
   const updateOrderData = (newData) => {
@@ -26,9 +30,28 @@ function App() {
           onUpdateData={updateOrderData} 
         />
       )}
-      {step === 2 && <div>Step 2 Placeholder</div>}
-      {step === 3 && <div>Step 3 Placeholder</div>}
-      {step === 4 && <div>Step 4 Placeholder</div>}
+      {step === 2 && (
+        <Step2_SizeSelection
+          onNext={nextStep}
+          onPrev={prevStep}
+          onUpdateData={updateOrderData}
+          currentSize={orderData.stoneSize}
+        />
+      )}
+      {step === 3 && (
+        <Step3_InteractiveCanvas
+          onNext={nextStep}
+          onPrev={prevStep}
+          onUpdateData={updateOrderData}
+          orderData={orderData}
+        />
+      )}
+      {step === 4 && (
+        <Step4_CheckoutSummary
+          onPrev={prevStep}
+          orderData={orderData}
+        />
+      )}
     </div>
   )
 }
