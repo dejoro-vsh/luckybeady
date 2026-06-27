@@ -26,6 +26,7 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
   const beadCount = braceletConfig.filter(i => i !== null).length;
   const charmCount = braceletConfig.filter(i => i?.type === 'charm').length;
   const [clientSecret, setClientSecret] = useState("");
+  const [paymentError, setPaymentError] = useState("");
   const discountedPrice = Math.floor(totalPrice * 0.8);
 
   useEffect(() => {
@@ -35,8 +36,23 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount: discountedPrice }),
     })
-      .then((res) => res.json())
-      .then((data) => setClientSecret(data.clientSecret));
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch API");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data.error) {
+          setPaymentError(data.error);
+        } else {
+          setClientSecret(data.clientSecret);
+        }
+      })
+      .catch((err) => {
+        console.error("Payment API Error:", err);
+        setPaymentError("ไม่สามารถเชื่อมต่อระบบชำระเงินได้ (กรุณาตรวจสอบการตั้งค่า Environment Variables ใน Vercel)");
+      });
   }, [discountedPrice]);
 
   const today = new Date().toLocaleDateString('th-TH', {
@@ -161,6 +177,19 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
 
       <div className="footer-action" style={{ display: 'block', paddingBottom: '2rem' }}>
         <h3 style={{ textAlign: 'center', marginBottom: '1rem' }}>ชำระเงินออนไลน์ (พร้อมเพย์ / บัตรเครดิต)</h3>
+        
+        {paymentError && (
+          <div style={{ color: 'var(--danger-color, #ef4444)', textAlign: 'center', marginBottom: '1rem', padding: '1rem', backgroundColor: '#fee2e2', borderRadius: '8px', fontSize: '0.875rem' }}>
+            {paymentError}
+          </div>
+        )}
+        
+        {!clientSecret && !paymentError && (
+          <div style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-muted)' }}>
+            กำลังโหลดช่องทางการชำระเงิน...
+          </div>
+        )}
+
         {clientSecret && (
           <Elements options={{ clientSecret, appearance: { theme: 'stripe' } }} stripe={stripePromise}>
             <CheckoutForm amount={discountedPrice} />
