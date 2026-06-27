@@ -1,0 +1,133 @@
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 80px; /* Space for fixed footer */
+}
+
+.card {
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  margin-bottom: 0.5rem;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card-title {
+  font-size: 1.125rem;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.instruction {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.illustration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.illustration img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.caption {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.input-group {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.wrist-input {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  width: 120px;
+  text-align: right;
+  border: none;
+  border-bottom: 2px solid var(--primary-color);
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+  background: transparent;
+  outline: none;
+}
+
+.unit {
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.preset-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.preset-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  background-color: white;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.preset-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.input-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.text-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: var(--font-sans);
+  outline: none;
+}
+
+.text-input:focus {
+  border-color: var(--primary-color);
+}
+
+.footer-action {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  padding: 1rem;
+  background-color: var(--card-bg);
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+  z-index: 10;
+}
