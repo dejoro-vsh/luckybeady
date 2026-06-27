@@ -1,7 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Button from '../components/Button';
 import './Step4.css';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import CheckoutForm from '../components/CheckoutForm';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 // Mock meanings for stones
 const STONE_MEANINGS = {
@@ -20,6 +25,19 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
   const { wristSize, ownerName, stoneSize, braceletConfig, totalPrice } = orderData;
   const beadCount = braceletConfig.filter(i => i !== null).length;
   const charmCount = braceletConfig.filter(i => i?.type === 'charm').length;
+  const [clientSecret, setClientSecret] = useState("");
+  const discountedPrice = Math.floor(totalPrice * 0.8);
+
+  useEffect(() => {
+    // Create PaymentIntent as soon as the page loads
+    fetch("/api/create-payment-intent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: discountedPrice }),
+    })
+      .then((res) => res.json())
+      .then((data) => setClientSecret(data.clientSecret));
+  }, [discountedPrice]);
 
   const today = new Date().toLocaleDateString('th-TH', {
     year: 'numeric',
@@ -40,18 +58,7 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
   });
   const bomList = Array.from(bomMap.values());
 
-  const discountedPrice = Math.floor(totalPrice * 0.8);
 
-  const handleCheckout = () => {
-    // Desktop fallback / LINE OA Redirect
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    if (/android|iPad|iPhone|iPod/i.test(userAgent)) {
-      alert("Simulating LINE Flex Message sending... (Redirecting to LINE OA)");
-      window.location.href = "https://line.me/R/ti/p/@LuckyBeadyByYU";
-    } else {
-      alert("สแกนคิวอาร์โค้ดเพื่อเพิ่มเพื่อน LINE และยืนยันการสั่งซื้อ");
-    }
-  };
 
   const getFinalCanvasCircles = () => {
     const radius = 100; // 100px radius for the 200px circle
@@ -152,13 +159,18 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
         <Button variant="outline" className="contact-btn">สอบถาม / สั่งทำได้ที่ LINE @LuckyBeady By YU</Button>
       </div>
 
-      <div className="footer-action dual-action checkout-action">
-        <Button onClick={onPrev} variant="secondary" className="flex-1">
-          ย้อนกลับ
-        </Button>
-        <Button onClick={handleCheckout} variant="success" className="flex-2">
-          สั่งซื้อผ่าน LINE 20%
-        </Button>
+      <div className="footer-action" style={{ display: 'block', paddingBottom: '2rem' }}>
+        <h3 style={{ textAlign: 'center', marginBottom: '1rem' }}>ชำระเงินออนไลน์ (พร้อมเพย์ / บัตรเครดิต)</h3>
+        {clientSecret && (
+          <Elements options={{ clientSecret, appearance: { theme: 'stripe' } }} stripe={stripePromise}>
+            <CheckoutForm amount={discountedPrice} />
+          </Elements>
+        )}
+        <div style={{ marginTop: '2rem' }}>
+          <Button onClick={onPrev} variant="secondary" style={{ width: '100%' }}>
+            ย้อนกลับไปแก้ไขแบบ
+          </Button>
+        </div>
       </div>
     </div>
   );
