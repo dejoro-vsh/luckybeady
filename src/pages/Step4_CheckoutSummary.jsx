@@ -53,15 +53,41 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
     }
   };
 
+  const getFinalCanvasCircles = () => {
+    const radius = 100; // 100px radius for the 200px circle
+    // Ensure beadCountForLayout is same as Step3
+    const beadCountForLayout = Math.round((wristSize + 2) / (stoneSize / 10)) || 24;
+    
+    return braceletConfig.map((item, i) => {
+      if (!item) return null;
+      
+      const angle = (i / beadCountForLayout) * 2 * Math.PI - Math.PI / 2;
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
+      
+      return (
+        <div 
+          key={i}
+          className="final-canvas-slot"
+          style={{ transform: `translate(${x}px, ${y}px)` }}
+        >
+          <div className="final-filled-item" style={{ backgroundColor: item.color || '#ccc' }}>
+            <span className="final-item-initial">{item.name.substring(0,2)}</span>
+          </div>
+        </div>
+      );
+    });
+  };
+
   return (
     <div className="page-container step4-page">
       <Header subtitle={ownerName ? `for ${ownerName}` : ''} date={today} />
       
       <div className="final-design-image">
-        {/* Placeholder for the 3D/2D finalized render */}
-        <div className="render-placeholder">
-          <span>FINAL DESIGN</span>
-          <div className="design-details">ข้อมือ {wristSize} cm | {stoneSize} mm</div>
+        <div className="render-placeholder" style={{ position: 'relative' }}>
+          {getFinalCanvasCircles()}
+          <span style={{ zIndex: 1 }}>FINAL DESIGN</span>
+          <div className="design-details" style={{ zIndex: 1 }}>ข้อมือ {wristSize} cm | {stoneSize} mm</div>
         </div>
       </div>
 

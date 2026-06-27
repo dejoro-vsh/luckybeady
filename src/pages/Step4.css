@@ -24,6 +24,37 @@
   color: var(--text-muted);
   font-weight: 600;
   letter-spacing: 0.05em;
+  position: relative;
+}
+
+.final-canvas-slot {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  margin-top: -10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 50%;
+  left: 50%;
+}
+
+.final-filled-item {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset -1px -1px 2px rgba(0,0,0,0.1), 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.final-item-initial {
+  font-size: 0.4rem;
+  color: white;
+  font-weight: 700;
 }
 
 .design-details {
