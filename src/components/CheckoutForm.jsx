@@ -7,6 +7,7 @@ export default function CheckoutForm({ amount }) {
   const elements = useElements();
   const [message, setMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [phone, setPhone] = useState('');
 
   useEffect(() => {
     if (!stripe) {
@@ -54,7 +55,8 @@ export default function CheckoutForm({ amount }) {
         return_url: window.location.origin,
         payment_method_data: {
           billing_details: {
-            email: 'noreply@luckybeady.com',
+            email: phone ? `${phone.replace(/\D/g, '')}@luckybeady.com` : 'noreply@luckybeady.com',
+            phone: phone || undefined,
           }
         }
       },
@@ -81,6 +83,28 @@ export default function CheckoutForm({ amount }) {
 
   return (
     <form id="payment-form" onSubmit={handleSubmit} style={{ width: '100%', marginTop: '1rem' }}>
+      <div style={{ marginBottom: '1.25rem' }}>
+        <label htmlFor="phone" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: 'var(--text-main)', fontSize: '0.9rem' }}>
+          เบอร์โทรศัพท์ (สำหรับติดต่อกลับกรณีจำเป็น)
+        </label>
+        <input
+          id="phone"
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="08X-XXX-XXXX"
+          required
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px',
+            fontSize: '1rem',
+            outline: 'none',
+            boxSizing: 'border-box'
+          }}
+        />
+      </div>
       <PaymentElement id="payment-element" options={paymentElementOptions} />
       <Button 
         disabled={isLoading || !stripe || !elements} 
