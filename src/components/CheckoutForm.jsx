@@ -51,8 +51,12 @@ export default function CheckoutForm({ amount }) {
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        // Make sure to change this to your payment completion page
         return_url: window.location.origin,
+        payment_method_data: {
+          billing_details: {
+            email: 'noreply@luckybeady.com',
+          }
+        }
       },
     });
 
@@ -65,9 +69,19 @@ export default function CheckoutForm({ amount }) {
     setIsLoading(false);
   };
 
+  const paymentElementOptions = {
+    layout: "tabs",
+    paymentMethodOrder: ['promptpay', 'card'],
+    fields: {
+      billingDetails: {
+        email: 'never',
+      }
+    }
+  };
+
   return (
     <form id="payment-form" onSubmit={handleSubmit} style={{ width: '100%', marginTop: '1rem' }}>
-      <PaymentElement id="payment-element" options={{ layout: "tabs" }} />
+      <PaymentElement id="payment-element" options={paymentElementOptions} />
       <Button 
         disabled={isLoading || !stripe || !elements} 
         id="submit" 
