@@ -1,0 +1,16 @@
+import { sql } from '@vercel/postgres';
+
+export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    try {
+      // Only fetch items that are in_stock for the storefront
+      const { rows } = await sql`SELECT * FROM products WHERE stock_status = 'in_stock' ORDER BY type, name`;
+      return res.status(200).json(rows);
+    } catch (error) {
+      console.error("Fetch Products Error:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
+}
