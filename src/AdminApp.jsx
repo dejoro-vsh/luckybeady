@@ -7,7 +7,11 @@ const SIZE_OPTIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
 export default function AdminApp() {
   const [password, setPassword] = useState('');
   const [isAuth, setIsAuth] = useState(false);
+  const [activeTab, setActiveTab] = useState('products'); // 'products' or 'orders'
+  
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  
   const [editingProduct, setEditingProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
@@ -22,11 +26,22 @@ export default function AdminApp() {
       });
   };
 
+  const fetchOrders = () => {
+    setLoading(true);
+    fetch('/api/admin/orders')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setOrders(data);
+        setLoading(false);
+      });
+  };
+
   useEffect(() => {
     if (isAuth) {
-      fetchProducts();
+      if (activeTab === 'products') fetchProducts();
+      if (activeTab === 'orders') fetchOrders();
     }
-  }, [isAuth]);
+  }, [isAuth, activeTab]);
 
   // Auto-generate ID when name, color, or size changes
   useEffect(() => {
@@ -147,56 +162,137 @@ export default function AdminApp() {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2>ระบบจัดการหิน (Admin)</h2>
+      
+      <div style={{ display: 'flex', gap: '1rem', borderBottom: '2px solid #e2e8f0', marginBottom: '2rem' }}>
         <button 
-          onClick={() => setEditingProduct({ id: '', name: '', type: 'stone', color: 'ชมพู', price: 0, size: 8, img: '', meaning: '', stock_quantity: 10 })}
-          style={{ padding: '0.5rem 1rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px' }}
+          onClick={() => setActiveTab('products')}
+          style={{ 
+            padding: '1rem 2rem', 
+            background: 'none', 
+            border: 'none', 
+            borderBottom: activeTab === 'products' ? '3px solid #10b981' : '3px solid transparent',
+            fontWeight: 'bold',
+            color: activeTab === 'products' ? '#10b981' : '#64748b',
+            cursor: 'pointer',
+            fontSize: '1.1rem'
+          }}
         >
-          + เพิ่มสินค้าใหม่
+          💎 จัดการสต๊อกหิน
+        </button>
+        <button 
+          onClick={() => setActiveTab('orders')}
+          style={{ 
+            padding: '1rem 2rem', 
+            background: 'none', 
+            border: 'none', 
+            borderBottom: activeTab === 'orders' ? '3px solid #10b981' : '3px solid transparent',
+            fontWeight: 'bold',
+            color: activeTab === 'orders' ? '#10b981' : '#64748b',
+            cursor: 'pointer',
+            fontSize: '1.1rem'
+          }}
+        >
+          🛒 รายการสั่งซื้อ
         </button>
       </div>
 
-      {loading ? <p>Loading...</p> : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <thead>
-            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-              <th style={{ padding: '1rem', textAlign: 'left' }}>รูป</th>
-              <th style={{ padding: '1rem', textAlign: 'left' }}>รหัส (ID)</th>
-              <th style={{ padding: '1rem', textAlign: 'left' }}>ชื่อ / ขนาด</th>
-              <th style={{ padding: '1rem', textAlign: 'left' }}>ประเภท</th>
-              <th style={{ padding: '1rem', textAlign: 'left' }}>ราคา</th>
-              <th style={{ padding: '1rem', textAlign: 'left' }}>สต๊อก</th>
-              <th style={{ padding: '1rem', textAlign: 'center' }}>จัดการ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map(p => (
-              <tr key={p.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <td style={{ padding: '1rem' }}><img src={p.img} alt={p.name} width={40} height={40} style={{ borderRadius: '50%', objectFit: 'cover' }} /></td>
-                <td style={{ padding: '1rem', fontSize: '0.85rem', color: '#64748b' }}>{p.id}</td>
-                <td style={{ padding: '1rem' }}>
-                  <div style={{ fontWeight: 'bold' }}>{p.name}</div>
-                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>{p.size ? `${p.size} mm` : '-'} | {p.color}</div>
-                </td>
-                <td style={{ padding: '1rem' }}>{p.type}</td>
-                <td style={{ padding: '1rem' }}>฿{p.price}</td>
-                <td style={{ padding: '1rem' }}>
-                  <span style={{ padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.8rem', background: p.stock_quantity > 0 ? '#d1fae5' : '#fee2e2', color: p.stock_quantity > 0 ? '#065f46' : '#991b1b' }}>
-                    {p.stock_quantity > 0 ? `${p.stock_quantity} ชิ้น` : 'หมดชั่วคราว'}
-                  </span>
-                </td>
-                <td style={{ padding: '1rem', textAlign: 'center' }}>
-                  <button onClick={() => setEditingProduct(p)} style={{ marginRight: '0.5rem', background: '#3b82f6', color: 'white', padding: '0.25rem 0.5rem', border: 'none', borderRadius: '4px' }}>แก้ไข</button>
-                  <button onClick={() => handleDelete(p.id)} style={{ background: '#ef4444', color: 'white', padding: '0.25rem 0.5rem', border: 'none', borderRadius: '4px' }}>ลบ</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {activeTab === 'products' && (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <h2>จัดการคลังสินค้า</h2>
+            <button 
+              onClick={() => setEditingProduct({ id: '', name: '', type: 'stone', color: 'ชมพู', price: 0, size: 8, img: '', meaning: '', stock_quantity: 10 })}
+              style={{ padding: '0.5rem 1rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              + เพิ่มสินค้าใหม่
+            </button>
+          </div>
+
+          {loading ? <p>Loading products...</p> : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>รูป</th>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>รหัส (ID)</th>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>ชื่อ / ขนาด</th>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>ประเภท</th>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>ราคา</th>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>สต๊อก</th>
+                  <th style={{ padding: '1rem', textAlign: 'center' }}>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map(p => (
+                  <tr key={p.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '1rem' }}><img src={p.img} alt={p.name} width={40} height={40} style={{ borderRadius: '50%', objectFit: 'cover' }} /></td>
+                    <td style={{ padding: '1rem', fontSize: '0.85rem', color: '#64748b' }}>{p.id}</td>
+                    <td style={{ padding: '1rem' }}>
+                      <div style={{ fontWeight: 'bold' }}>{p.name}</div>
+                      <div style={{ fontSize: '0.85rem', color: '#64748b' }}>{p.size ? `${p.size} mm` : '-'} | {p.color}</div>
+                    </td>
+                    <td style={{ padding: '1rem' }}>{p.type}</td>
+                    <td style={{ padding: '1rem' }}>฿{p.price}</td>
+                    <td style={{ padding: '1rem' }}>
+                      <span style={{ padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.8rem', background: p.stock_quantity > 0 ? '#d1fae5' : '#fee2e2', color: p.stock_quantity > 0 ? '#065f46' : '#991b1b' }}>
+                        {p.stock_quantity > 0 ? `${p.stock_quantity} ชิ้น` : 'หมดชั่วคราว'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                      <button onClick={() => setEditingProduct(p)} style={{ marginRight: '0.5rem', background: '#3b82f6', color: 'white', padding: '0.25rem 0.5rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>แก้ไข</button>
+                      <button onClick={() => handleDelete(p.id)} style={{ background: '#ef4444', color: 'white', padding: '0.25rem 0.5rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>ลบ</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
       )}
 
-      {editingProduct && (
+      {activeTab === 'orders' && (
+        <>
+          <div style={{ marginBottom: '2rem' }}>
+            <h2>รายการสั่งซื้อล่าสุด</h2>
+          </div>
+          {loading ? <p>Loading orders...</p> : orders.length === 0 ? <p>ยังไม่มีรายการสั่งซื้อ</p> : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>รหัสออเดอร์</th>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>วันที่</th>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>ชื่อลูกค้า</th>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>ข้อมือ</th>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>ยอดรวม (ลด 20%)</th>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>รายการสินค้า</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map(o => {
+                  let bomList = [];
+                  try { bomList = JSON.parse(o.bom_json); } catch(e){}
+                  return (
+                  <tr key={o.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '1rem', fontWeight: 'bold' }}>#{o.id}</td>
+                    <td style={{ padding: '1rem', fontSize: '0.85rem' }}>{new Date(o.created_at).toLocaleString('th-TH')}</td>
+                    <td style={{ padding: '1rem' }}>{o.owner_name}</td>
+                    <td style={{ padding: '1rem' }}>{o.wrist_size} cm</td>
+                    <td style={{ padding: '1rem', fontWeight: 'bold', color: '#10b981' }}>฿{o.discounted_price}</td>
+                    <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
+                      <ul style={{ paddingLeft: '1rem', margin: 0 }}>
+                        {bomList.map((item, idx) => (
+                          <li key={idx}>{item.name} x{item.qty}</li>
+                        ))}
+                      </ul>
+                    </td>
+                  </tr>
+                )})}
+              </tbody>
+            </table>
+          )}
+        </>
+      )}
+
+      {editingProduct && activeTab === 'products' && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100 }}>
           <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3>{products.find(p => p.id === editingProduct.id) ? 'แก้ไขข้อมูล' : 'เพิ่มสินค้าใหม่'}</h3>

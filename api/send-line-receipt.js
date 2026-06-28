@@ -32,8 +32,36 @@ export default async function handler(req, res) {
       }
     });
     const bomList = Array.from(bomMap.values());
+    const bomJson = JSON.stringify(bomList);
 
-    // Build Flex Message contents
+    // 1. SAVE ORDER TO DATABASE
+    let orderId = null;
+    try {
+      await pool.sql`
+        CREATE TABLE IF NOT EXISTS orders (
+          id SERIAL PRIMARY KEY,
+          user_id VARCHAR(100),
+          owner_name VARCHAR(100),
+          wrist_size VARCHAR(20),
+          total_price INTEGER,
+          discounted_price INTEGER,
+          bom_json TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `;
+
+      const result = await pool.sql`
+        INSERT INTO orders (user_id, owner_name, wrist_size, total_price, discounted_price, bom_json)
+        VALUES (${userId || 'Anonymous'}, ${orderData.ownerName || '-'}, ${orderData.wristSize}, ${orderData.totalPrice}, ${discountedPrice}, ${bomJson})
+        RETURNING id
+      `;
+      orderId = result.rows[0].id;
+    } catch (dbErr) {
+      console.error('Failed to save order to DB:', dbErr);
+      // We don't block the LINE notification if DB fails, but we log it.
+    }
+
+    // 2. BUILD FLEX MESSAGE
     const flexContents = {
       type: "bubble",
       size: "giga",
@@ -41,19 +69,8 @@ export default async function handler(req, res) {
         type: "box",
         layout: "vertical",
         contents: [
-          {
-            type: "text",
-            text: "LuckyBeady By YU",
-            weight: "bold",
-            size: "xl",
-            color: "#ffffff"
-          },
-          {
-            type: "text",
-            text: "สรุปคำสั่งซื้อของคุณ",
-            color: "#ffffffcc",
-            size: "sm"
-          }
+          { type: "text", text: "LuckyBeady By YU", weight: "bold", size: "xl", color: "#ffffff" },
+          { type: "text", text: `สรุปคำสั่งซื้อ #${orderId || '-'}`, color: "#ffffffcc", size: "sm" }
         ],
         backgroundColor: "#0f172a",
         paddingAll: "20px"
@@ -63,47 +80,38 @@ export default async function handler(req, res) {
         layout: "vertical",
         contents: [
           {
-            type: "box",
-            layout: "horizontal",
+            type: "box", layout: "horizontal",
             contents: [
               { type: "text", text: "ชื่อลูกค้า", size: "sm", color: "#555555", flex: 1 },
               { type: "text", text: orderData.ownerName || "-", size: "sm", color: "#111111", align: "end", flex: 2 }
             ]
           },
           {
-            type: "box",
-            layout: "horizontal",
+            type: "box", layout: "horizontal",
             contents: [
               { type: "text", text: "ขนาดข้อมือ", size: "sm", color: "#555555", flex: 1 },
               { type: "text", text: `${orderData.wristSize} cm`, size: "sm", color: "#111111", align: "end", flex: 1 }
-            ],
-            margin: "md"
+            ], margin: "md"
           },
           { type: "separator", margin: "xxl" },
-          { type: "text", text: "รายการหิน / ของตกแต่ง", weight: "bold", margin: "lg", size: "sm" },
+          { type: "text", text: "รายการสินค้า", weight: "bold", margin: "lg", size: "sm" },
           ...bomList.map(item => ({
-            type: "box",
-            layout: "horizontal",
+            type: "box", layout: "horizontal",
             contents: [
               { type: "text", text: `${item.name} x${item.qty}`, size: "sm", color: "#555555", flex: 2, wrap: true },
               { type: "text", text: `฿${item.subtotal}`, size: "sm", color: "#111111", align: "end", flex: 1 }
-            ],
-            margin: "sm"
+            ], margin: "sm"
           })),
           { type: "separator", margin: "xxl" },
           {
-            type: "box",
-            layout: "horizontal",
-            margin: "lg",
+            type: "box", layout: "horizontal", margin: "lg",
             contents: [
               { type: "text", text: "ยอดรวม", size: "sm", color: "#555555" },
               { type: "text", text: `฿${orderData.totalPrice}`, size: "sm", color: "#111111", align: "end", decoration: "line-through" }
             ]
           },
           {
-            type: "box",
-            layout: "horizontal",
-            margin: "md",
+            type: "box", layout: "horizontal", margin: "md",
             contents: [
               { type: "text", text: "ยอดสุทธิ (ลด 20%)", size: "md", color: "#10b981", weight: "bold" },
               { type: "text", text: `฿${discountedPrice}`, size: "lg", color: "#10b981", weight: "bold", align: "end" }
@@ -113,15 +121,8 @@ export default async function handler(req, res) {
       }
     };
 
-    const messages = [
-      {
-        type: "flex",
-        altText: "สรุปออเดอร์จาก LuckyBeady",
-        contents: flexContents
-      }
-    ];
+    const messages = [{ type: "flex", altText: "สรุปออเดอร์จาก LuckyBeady", contents: flexContents }];
 
-    // Add meaning text if any
     let meaningText = "💎 ความหมายหินในกำไลของคุณ:\n";
     let hasMeaning = false;
     bomList.forEach(item => {
@@ -132,60 +133,58 @@ export default async function handler(req, res) {
     });
 
     if (hasMeaning) {
-      messages.push({
-        type: "text",
-        text: meaningText
-      });
+      messages.push({ type: "text", text: meaningText });
     }
 
     const pushUrl = 'https://api.line.me/v2/bot/message/push';
+    let lineResultCustomer = null;
+    let lineResultAdmin = null;
 
-    // 1. Send to Customer
+    // 3. SEND TO CUSTOMER
     if (userId) {
-      await fetch(pushUrl, {
+      const custRes = await fetch(pushUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${channelAccessToken}`
-        },
-        body: JSON.stringify({
-          to: userId,
-          messages: messages
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${channelAccessToken}` },
+        body: JSON.stringify({ to: userId, messages: messages })
       });
+      lineResultCustomer = await custRes.json();
+    } else {
+      lineResultCustomer = { error: 'No userId provided' };
     }
 
-    // 2. Alert Admins
+    // 4. ALERT ADMINS
     try {
-      // Check if table exists first by querying it (if it fails, table doesn't exist)
       const { rows } = await pool.sql`SELECT user_id FROM admins`;
       const adminIds = rows.map(r => r.user_id);
       
       if (adminIds.length > 0) {
-        // Send a simpler alert message to admins
         const adminMessage = {
           type: "text",
-          text: `🚨 [ออเดอร์ใหม่เข้า!]\nชื่อลูกค้า: ${orderData.ownerName || '-'}\nข้อมือ: ${orderData.wristSize}cm\nยอดชำระ: ฿${discountedPrice}\nวันที่: ${dateStr}\n\n(คุณสามารถแชทคุยกับลูกค้าต่อในนี้ได้เลย)`
+          text: `🚨 [ออเดอร์ใหม่ #${orderId || '-'}]\nชื่อลูกค้า: ${orderData.ownerName || '-'}\nข้อมือ: ${orderData.wristSize}cm\nยอดชำระ: ฿${discountedPrice}\nวันที่: ${dateStr}\n\n(คุณสามารถแชทคุยกับลูกค้าต่อในนี้ได้เลย)`
         };
 
-        // LINE Messaging API supports multicast for up to 500 users at once
-        await fetch('https://api.line.me/v2/bot/message/multicast', {
+        const admRes = await fetch('https://api.line.me/v2/bot/message/multicast', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${channelAccessToken}`
-          },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${channelAccessToken}` },
           body: JSON.stringify({
             to: adminIds,
-            messages: [adminMessage, messages[0]] // Send alert + flex receipt
+            messages: [adminMessage, messages[0]]
           })
         });
+        lineResultAdmin = await admRes.json();
+      } else {
+        lineResultAdmin = { error: 'No admins found in database' };
       }
     } catch (adminErr) {
-      console.log('Failed to alert admins (table might not exist yet):', adminErr.message);
+      lineResultAdmin = { error: adminErr.message };
     }
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ 
+      success: true, 
+      orderId, 
+      lineResultCustomer, 
+      lineResultAdmin 
+    });
 
   } catch (err) {
     console.error('Send LINE error:', err);

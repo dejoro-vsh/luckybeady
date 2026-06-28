@@ -38,8 +38,11 @@ export default function Step5_Success({ orderData, lineProfile }) {
       })
       .then(res => res.json())
       .then(data => {
+        console.log("LINE Receipt API Response:", data);
         if (!data.error) {
           setReceiptSent(true);
+        } else {
+          console.error("API Error:", data.error, data.details);
         }
       })
       .catch(err => console.error("Error sending receipt:", err));
