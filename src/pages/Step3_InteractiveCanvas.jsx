@@ -13,7 +13,7 @@ export default function Step3_InteractiveCanvas({ onNext, onPrev, onUpdateData, 
   
   // First, filter products to only match the selected size (or items without size like spacers)
   const availableProducts = useMemo(() => {
-    return products.filter(p => !p.size || p.size === stoneSize);
+    return products.filter(p => !p.size || Number(p.size) === Number(stoneSize));
   }, [products, stoneSize]);
 
   // Extract unique colors for filters based on available products
