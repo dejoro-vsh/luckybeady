@@ -5,9 +5,15 @@ import Button from '../components/Button';
 import { PRESET_WRIST_SIZES } from '../data/products';
 import './Step1.css';
 
-export default function Step1_WristMeasurement({ onNext, onUpdateData }) {
+export default function Step1_WristMeasurement({ onNext, onUpdateData, initialName }) {
   const [wristSize, setWristSize] = useState('0.0');
-  const [ownerName, setOwnerName] = useState('');
+  const [ownerName, setOwnerName] = useState(initialName || '');
+
+  React.useEffect(() => {
+    if (initialName && !ownerName) {
+      setOwnerName(initialName);
+    }
+  }, [initialName]);
 
   const handleNext = () => {
     onUpdateData({ wristSize: parseFloat(wristSize), ownerName });
