@@ -13,6 +13,7 @@ export default function AdminApp() {
   const [orders, setOrders] = useState([]);
   
   const [editingProduct, setEditingProduct] = useState(null);
+  const [viewingOrder, setViewingOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
 
@@ -278,11 +279,17 @@ export default function AdminApp() {
                     <td style={{ padding: '1rem' }}>{o.wrist_size} cm</td>
                     <td style={{ padding: '1rem', fontWeight: 'bold', color: '#10b981' }}>฿{o.discounted_price}</td>
                     <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
-                      <ul style={{ paddingLeft: '1rem', margin: 0 }}>
+                      <ul style={{ paddingLeft: '1rem', margin: 0, marginBottom: '0.5rem' }}>
                         {bomList.map((item, idx) => (
                           <li key={idx}>{item.name} x{item.qty}</li>
                         ))}
                       </ul>
+                      <button 
+                        onClick={() => setViewingOrder(o)}
+                        style={{ padding: '0.25rem 0.5rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                      >
+                        👁️ ดูแบบกำไล
+                      </button>
                     </td>
                   </tr>
                 )})}
@@ -367,6 +374,52 @@ export default function AdminApp() {
                 <button type="submit" style={{ padding: '0.5rem 1rem', background: '#0f172a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>บันทึกข้อมูล</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {viewingOrder && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '400px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3>แบบกำไลออเดอร์ #{viewingOrder.id}</h3>
+              <button onClick={() => setViewingOrder(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
+            </div>
+            <div style={{ width: '300px', height: '300px', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#f8fafc', borderRadius: '50%', border: '2px dashed #cbd5e1', margin: '2rem auto' }}>
+              {(() => {
+                let config = [];
+                try { config = JSON.parse(viewingOrder.bracelet_config || '[]'); } catch(e){}
+                
+                if (config.length === 0) {
+                  return <div style={{ color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center', padding: '0 2rem' }}>ออเดอร์นี้ไม่มีข้อมูลการเรียงหิน (อาจเป็นออเดอร์เก่า)</div>;
+                }
+
+                const radius = 120;
+                const beadCountForLayout = config.length;
+                return config.map((item, i) => {
+                  if (!item) return null;
+                  const angle = (i / beadCountForLayout) * 2 * Math.PI - Math.PI / 2;
+                  const x = Math.cos(angle) * radius;
+                  const y = Math.sin(angle) * radius;
+                  return (
+                    <div key={i} style={{ position: 'absolute', transform: `translate(${x}px, ${y}px)`, width: '28px', height: '28px', borderRadius: '50%', background: '#ccc', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                      {item.img ? (
+                        <img src={item.img} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: '8px', textAlign: 'center' }}>{item.name.substring(0,3)}</span>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
+              <div style={{ position: 'absolute', fontSize: '0.9rem', color: '#94a3b8', fontWeight: 'bold' }}>{viewingOrder.wrist_size} cm</div>
+            </div>
+            
+            <div style={{ textAlign: 'center', marginTop: '1rem', color: '#64748b', fontSize: '0.9rem' }}>
+              ลูกค้าเรียงไว้ {(() => {
+                try { return JSON.parse(viewingOrder.bracelet_config || '[]').filter(i=>i).length; } catch(e){return 0;}
+              })()} ชิ้น
+            </div>
           </div>
         </div>
       )}

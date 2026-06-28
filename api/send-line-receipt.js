@@ -50,9 +50,15 @@ export default async function handler(req, res) {
         )
       `;
 
+      await pool.sql`
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS bracelet_config TEXT;
+      `;
+
+      const braceletJson = JSON.stringify(orderData.braceletConfig || []);
+
       const result = await pool.sql`
-        INSERT INTO orders (user_id, owner_name, wrist_size, total_price, discounted_price, bom_json)
-        VALUES (${userId || 'Anonymous'}, ${orderData.ownerName || '-'}, ${orderData.wristSize}, ${orderData.totalPrice}, ${discountedPrice}, ${bomJson})
+        INSERT INTO orders (user_id, owner_name, wrist_size, total_price, discounted_price, bom_json, bracelet_config)
+        VALUES (${userId || 'Anonymous'}, ${orderData.ownerName || '-'}, ${orderData.wristSize}, ${orderData.totalPrice}, ${discountedPrice}, ${bomJson}, ${braceletJson})
         RETURNING id
       `;
       orderId = result.rows[0].id;

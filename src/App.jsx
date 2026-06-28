@@ -9,6 +9,7 @@ import './styles/global.css'
 function App() {
   const [step, setStep] = useState(1)
   const [lineProfile, setLineProfile] = useState(null)
+  const [isFriend, setIsFriend] = useState(true) // default true to avoid flicker before LIFF loads
   const [products, setProducts] = useState([])
   const [loadingProducts, setLoadingProducts] = useState(true)
   const [orderData, setOrderData] = useState({
@@ -54,9 +55,17 @@ function App() {
     if (liffId && window.liff) {
       window.liff.init({ liffId }).then(() => {
         if (window.liff.isLoggedIn()) {
+          // Check friendship
+          window.liff.getFriendship().then(data => {
+            if (data.friendFlag) {
+              setIsFriend(true);
+            } else {
+              setIsFriend(false);
+            }
+          });
+
           window.liff.getProfile().then(profile => {
             setLineProfile(profile);
-            // Optionally auto-fill owner name if empty
             setOrderData(prev => prev.ownerName ? prev : { ...prev, ownerName: profile.displayName });
           });
         } else {
@@ -81,6 +90,26 @@ function App() {
 
   if (loadingProducts) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#64748b' }}>กำลังโหลดข้อมูลสินค้า...</div>
+  }
+
+  if (!isFriend) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#f8fafc', padding: '2rem', textAlign: 'center' }}>
+        <div style={{ background: 'white', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', maxWidth: '400px', width: '100%' }}>
+          <h2 style={{ marginBottom: '1rem', color: '#0f172a' }}>⚠️ จำเป็นต้องเป็นเพื่อน</h2>
+          <p style={{ color: '#64748b', marginBottom: '2rem' }}>
+            กรุณาเพิ่มเพื่อนกับ Luckybeady ใน LINE ก่อน เพื่อให้ระบบสามารถจัดส่งใบเสร็จและแจ้งเตือนสถานะออเดอร์ให้คุณได้ครับ
+          </p>
+          <a 
+            href="https://line.me/R/ti/p/@101bygmr" 
+            style={{ display: 'inline-block', background: '#06c755', color: 'white', padding: '1rem 2rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold' }}
+            target="_blank" rel="noreferrer"
+          >
+            เพิ่มเพื่อนคลิกที่นี่
+          </a>
+        </div>
+      </div>
+    );
   }
 
   return (
