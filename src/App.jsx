@@ -60,7 +60,8 @@ function App() {
             setOrderData(prev => prev.ownerName ? prev : { ...prev, ownerName: profile.displayName });
           });
         } else {
-          // You might want to force login if needed: window.liff.login();
+          // Force login if not logged in
+          window.liff.login();
         }
       }).catch(err => console.error("LIFF Init Error:", err));
     }
