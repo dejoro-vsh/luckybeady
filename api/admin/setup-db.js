@@ -1,4 +1,8 @@
-import { sql } from '@vercel/postgres';
+import { createPool } from '@vercel/postgres';
+
+const pool = createPool({
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
+});
 
 const initialStones = [
   { id: 's1', name: 'Strawberry Quartz', type: 'stone', color: 'pink', price: 65, sizes: [4, 6, 8], img: 'https://via.placeholder.com/150/FFB6C1', meaning: 'ช่วยเสริมเสน่ห์ ความรัก และความเมตตา' },
@@ -18,7 +22,7 @@ const initialStones = [
 export default async function handler(req, res) {
   try {
     // 1. Create table if not exists
-    await sql`
+    await pool.sql`
       CREATE TABLE IF NOT EXISTS products (
         id VARCHAR(50) PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -33,13 +37,13 @@ export default async function handler(req, res) {
     `;
 
     // 2. Check if data exists
-    const { rows } = await sql`SELECT count(*) FROM products`;
+    const { rows } = await pool.sql`SELECT count(*) FROM products`;
     const count = parseInt(rows[0].count);
 
     if (count === 0) {
       // Seed data
       for (const item of initialStones) {
-        await sql`
+        await pool.sql`
           INSERT INTO products (id, name, type, color, price, sizes, img, meaning, stock_status)
           VALUES (
             ${item.id}, 

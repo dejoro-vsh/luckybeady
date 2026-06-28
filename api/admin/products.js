@@ -1,4 +1,7 @@
-import { sql } from '@vercel/postgres';
+import { createPool } from '@vercel/postgres';
+const pool = createPool({
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL
+});
 
 export default async function handler(req, res) {
   // Simple auth check can be added here using headers (e.g. Bearer token)
@@ -7,7 +10,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       // Get all products (admin views all, even out of stock)
-      const { rows } = await sql`SELECT * FROM products ORDER BY type, name`;
+      const { rows } = await pool.sql`SELECT * FROM products ORDER BY type, name`;
       return res.status(200).json(rows);
     } catch (error) {
       return res.status(500).json({ error: error.message });
@@ -17,7 +20,7 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const { id, name, type, color, price, sizes, img, meaning, stock_status } = req.body;
-      await sql`
+      await pool.sql`
         INSERT INTO products (id, name, type, color, price, sizes, img, meaning, stock_status)
         VALUES (${id}, ${name}, ${type}, ${color}, ${price}, ${JSON.stringify(sizes)}, ${img}, ${meaning}, ${stock_status || 'in_stock'})
       `;
@@ -30,7 +33,7 @@ export default async function handler(req, res) {
   if (req.method === 'PUT') {
     try {
       const { id, name, type, color, price, sizes, img, meaning, stock_status } = req.body;
-      await sql`
+      await pool.sql`
         UPDATE products 
         SET name=${name}, type=${type}, color=${color}, price=${price}, sizes=${JSON.stringify(sizes)}, img=${img}, meaning=${meaning}, stock_status=${stock_status}
         WHERE id=${id}
