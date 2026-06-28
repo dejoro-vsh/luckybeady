@@ -56,7 +56,7 @@ export default function Step3_InteractiveCanvas({ onNext, onPrev, onUpdateData, 
 
   const filledCount = canvasItems.filter(i => i !== null).length;
   const charmCount = canvasItems.filter(i => i?.type === 'charm').length;
-  const totalPrice = canvasItems.reduce((sum, item) => sum + (item ? item.price : 0), 0);
+  const totalPrice = canvasItems.reduce((sum, item) => sum + (item ? Number(item.price) : 0), 0);
 
   const handleConfirm = () => {
     onUpdateData({ braceletConfig: canvasItems, totalPrice });

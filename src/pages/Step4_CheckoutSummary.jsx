@@ -56,9 +56,9 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
     if (!item) return;
     if (bomMap.has(item.id)) {
       bomMap.get(item.id).qty += 1;
-      bomMap.get(item.id).subtotal += item.price;
+      bomMap.get(item.id).subtotal += Number(item.price);
     } else {
-      bomMap.set(item.id, { ...item, qty: 1, subtotal: item.price });
+      bomMap.set(item.id, { ...item, qty: 1, subtotal: Number(item.price) });
     }
   });
   const bomList = Array.from(bomMap.values());
