@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import Button from '../components/Button';
 import './Step4.css'; // Reusing CSS from step 4
-import { renderBraceletLayout } from '../utils/canvasHelper';
 
 export default function Step5_Success({ orderData, lineProfile }) {
   const { wristSize, stoneSize, braceletConfig, totalPrice, ownerName, phone } = orderData;
@@ -48,9 +47,28 @@ export default function Step5_Success({ orderData, lineProfile }) {
   }, [receiptSent, lineProfile, orderData]);
 
   const getFinalCanvasCircles = () => {
-    const radius = 100;
+    const radius = 100; // 100px radius for the 200px circle
     const beadCountForLayout = Math.round((wristSize + 2) / (stoneSize / 10)) || 24;
-    return renderBraceletLayout(braceletConfig, beadCountForLayout, radius, stoneSize);
+    
+    return braceletConfig.map((item, i) => {
+      if (!item) return null;
+      
+      const angle = (i / beadCountForLayout) * 2 * Math.PI - Math.PI / 2;
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
+      
+      return (
+        <div 
+          key={i}
+          className="final-canvas-slot"
+          style={{ transform: `translate(${x}px, ${y}px)` }}
+        >
+          <div className="final-filled-item" style={{ backgroundColor: item.color || '#ccc' }}>
+            <span className="final-item-initial">{item.name.substring(0,2)}</span>
+          </div>
+        </div>
+      );
+    });
   };
 
   return (
