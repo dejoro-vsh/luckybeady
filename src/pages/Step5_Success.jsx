@@ -142,7 +142,7 @@ export default function Step5_Success({ orderData, lineProfile }) {
         <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
           {receiptSent ? "✅ เราได้ส่งใบเสร็จให้คุณทาง LINE แล้ว" : "กำลังจัดเตรียมคำสั่งซื้อ..."}
         </p>
-        <Button onClick={() => window.liff ? window.liff.closeWindow() : window.location.href = '/'} variant="primary" style={{ width: '100%' }}>
+        <Button onClick={() => (window.liff && window.liff.isInClient()) ? window.liff.closeWindow() : window.location.href = '/'} variant="primary" style={{ width: '100%' }}>
           ปิดหน้านี้
         </Button>
       </div>
