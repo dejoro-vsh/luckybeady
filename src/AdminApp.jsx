@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import './styles/global.css';
 
+const COLOR_OPTIONS = ['ทั้งหมด', 'แดง', 'ชมพู', 'ส้ม', 'เหลือง', 'เขียว', 'ฟ้า', 'น้ำเงิน', 'ม่วง', 'ขาว', 'ดำ', 'เทา', 'เงิน', 'ทอง', 'โรสโกลด์', 'อื่นๆ'];
+const SIZE_OPTIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+
 export default function AdminApp() {
   const [password, setPassword] = useState('');
   const [isAuth, setIsAuth] = useState(false);
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [generatingAI, setGeneratingAI] = useState(false);
 
   const fetchProducts = () => {
     setLoading(true);
@@ -24,17 +28,73 @@ export default function AdminApp() {
     }
   }, [isAuth]);
 
+  // Auto-generate ID when name, color, or size changes
+  useEffect(() => {
+    if (editingProduct && !products.find(p => p.id === editingProduct.id)) {
+      const namePart = (editingProduct.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const colorPart = editingProduct.color ? `-${editingProduct.color}` : '';
+      const sizePart = editingProduct.size ? `-${editingProduct.size}mm` : '';
+      let newId = `${namePart}${colorPart}${sizePart}`;
+      if (newId.startsWith('-')) newId = newId.slice(1);
+      
+      setEditingProduct(prev => ({ ...prev, id: newId }));
+    }
+  }, [editingProduct?.name, editingProduct?.color, editingProduct?.size]);
+
   const handleLogin = (e) => {
     e.preventDefault();
-    if (password === 'luckyadmin') { // Basic hardcoded auth for demo
+    if (password === 'luckyadmin') {
       setIsAuth(true);
     } else {
       alert('รหัสผ่านไม่ถูกต้อง');
     }
   };
 
+  const handleImageCapture = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditingProduct(prev => ({ ...prev, imageBase64: reader.result, img: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGenerateAI = async () => {
+    if (!editingProduct.name) {
+      alert('กรุณากรอกชื่อหินก่อนใช้ AI');
+      return;
+    }
+    setGeneratingAI(true);
+    try {
+      const res = await fetch('/api/admin/generate-meaning', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editingProduct.name,
+          color: editingProduct.color,
+          type: editingProduct.type
+        })
+      });
+      const data = await res.json();
+      if (data.meaning) {
+        setEditingProduct(prev => ({ ...prev, meaning: data.meaning }));
+      } else {
+        alert('Error: ' + data.error);
+      }
+    } catch (err) {
+      alert('Failed to generate: ' + err.message);
+    }
+    setGeneratingAI(false);
+  };
+
   const handleSave = (e) => {
     e.preventDefault();
+    if (!editingProduct.id) {
+      alert('รหัสสินค้า (ID) ว่างเปล่า กรุณากรอกชื่อหิน');
+      return;
+    }
     const isNew = !products.find(p => p.id === editingProduct.id);
     const method = isNew ? 'POST' : 'PUT';
 
@@ -86,11 +146,11 @@ export default function AdminApp() {
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h2>ระบบจัดการหิน (Admin)</h2>
         <button 
-          onClick={() => setEditingProduct({ id: '', name: '', type: 'stone', color: '', price: 0, sizes: [4,6,8], img: '', meaning: '', stock_status: 'in_stock' })}
+          onClick={() => setEditingProduct({ id: '', name: '', type: 'stone', color: 'ชมพู', price: 0, size: 8, img: '', meaning: '', stock_quantity: 10 })}
           style={{ padding: '0.5rem 1rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px' }}
         >
           + เพิ่มสินค้าใหม่
@@ -103,24 +163,27 @@ export default function AdminApp() {
             <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
               <th style={{ padding: '1rem', textAlign: 'left' }}>รูป</th>
               <th style={{ padding: '1rem', textAlign: 'left' }}>รหัส (ID)</th>
-              <th style={{ padding: '1rem', textAlign: 'left' }}>ชื่อ</th>
+              <th style={{ padding: '1rem', textAlign: 'left' }}>ชื่อ / ขนาด</th>
               <th style={{ padding: '1rem', textAlign: 'left' }}>ประเภท</th>
               <th style={{ padding: '1rem', textAlign: 'left' }}>ราคา</th>
-              <th style={{ padding: '1rem', textAlign: 'left' }}>สถานะ</th>
+              <th style={{ padding: '1rem', textAlign: 'left' }}>สต๊อก</th>
               <th style={{ padding: '1rem', textAlign: 'center' }}>จัดการ</th>
             </tr>
           </thead>
           <tbody>
             {products.map(p => (
               <tr key={p.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <td style={{ padding: '1rem' }}><img src={p.img} alt={p.name} width={40} height={40} style={{ borderRadius: '50%' }} /></td>
-                <td style={{ padding: '1rem' }}>{p.id}</td>
-                <td style={{ padding: '1rem' }}>{p.name}</td>
+                <td style={{ padding: '1rem' }}><img src={p.img} alt={p.name} width={40} height={40} style={{ borderRadius: '50%', objectFit: 'cover' }} /></td>
+                <td style={{ padding: '1rem', fontSize: '0.85rem', color: '#64748b' }}>{p.id}</td>
+                <td style={{ padding: '1rem' }}>
+                  <div style={{ fontWeight: 'bold' }}>{p.name}</div>
+                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>{p.size ? `${p.size} mm` : '-'} | {p.color}</div>
+                </td>
                 <td style={{ padding: '1rem' }}>{p.type}</td>
                 <td style={{ padding: '1rem' }}>฿{p.price}</td>
                 <td style={{ padding: '1rem' }}>
-                  <span style={{ padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.8rem', background: p.stock_status === 'in_stock' ? '#d1fae5' : '#fee2e2', color: p.stock_status === 'in_stock' ? '#065f46' : '#991b1b' }}>
-                    {p.stock_status === 'in_stock' ? 'พร้อมส่ง' : 'หมดชั่วคราว'}
+                  <span style={{ padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.8rem', background: p.stock_quantity > 0 ? '#d1fae5' : '#fee2e2', color: p.stock_quantity > 0 ? '#065f46' : '#991b1b' }}>
+                    {p.stock_quantity > 0 ? `${p.stock_quantity} ชิ้น` : 'หมดชั่วคราว'}
                   </span>
                 </td>
                 <td style={{ padding: '1rem', textAlign: 'center' }}>
@@ -134,57 +197,78 @@ export default function AdminApp() {
       )}
 
       {editingProduct && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3>{products.find(p => p.id === editingProduct.id) ? 'แก้ไขข้อมูล' : 'เพิ่มสินค้าใหม่'}</h3>
             <form onSubmit={handleSave}>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.25rem' }}>รหัส (ID)</label>
-                <input required value={editingProduct.id} onChange={e => setEditingProduct({...editingProduct, id: e.target.value})} disabled={!!products.find(p => p.id === editingProduct.id)} style={{ width: '100%', padding: '0.5rem' }} />
+              
+              <div style={{ marginBottom: '1rem', background: '#f8fafc', padding: '0.5rem', borderRadius: '4px' }}>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>รหัสสินค้า (Auto-generated): </span>
+                <strong>{editingProduct.id || 'ระบบจะสร้างให้อัตโนมัติ'}</strong>
               </div>
+
               <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.25rem' }}>ชื่อหิน/สินค้า</label>
-                <input required value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} style={{ width: '100%', padding: '0.5rem' }} />
+                <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold' }}>ชื่อหิน/สินค้า</label>
+                <input required value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} placeholder="เช่น Rose Quartz" />
               </div>
+
               <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '0.25rem' }}>ประเภท</label>
-                  <select value={editingProduct.type} onChange={e => setEditingProduct({...editingProduct, type: e.target.value})} style={{ width: '100%', padding: '0.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold' }}>ประเภท</label>
+                  <select value={editingProduct.type} onChange={e => setEditingProduct({...editingProduct, type: e.target.value})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}>
                     <option value="stone">หิน (Stone)</option>
                     <option value="spacer">ตัวคั่น (Spacer)</option>
                     <option value="charm">จี้ (Charm)</option>
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '0.25rem' }}>กลุ่มสี (เช่น pink, blue)</label>
-                  <input value={editingProduct.color || ''} onChange={e => setEditingProduct({...editingProduct, color: e.target.value})} style={{ width: '100%', padding: '0.5rem' }} />
-                </div>
-              </div>
-              <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '0.25rem' }}>ราคา (บาท)</label>
-                  <input type="number" required value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: parseFloat(e.target.value)})} style={{ width: '100%', padding: '0.5rem' }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '0.25rem' }}>สถานะสต๊อก</label>
-                  <select value={editingProduct.stock_status} onChange={e => setEditingProduct({...editingProduct, stock_status: e.target.value})} style={{ width: '100%', padding: '0.5rem' }}>
-                    <option value="in_stock">พร้อมส่ง</option>
-                    <option value="out_of_stock">หมดชั่วคราว</option>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold' }}>กลุ่มสี</label>
+                  <select value={editingProduct.color || ''} onChange={e => setEditingProduct({...editingProduct, color: e.target.value})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}>
+                    {COLOR_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
               </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.25rem' }}>URL รูปภาพ</label>
-                <input value={editingProduct.img || ''} onChange={e => setEditingProduct({...editingProduct, img: e.target.value})} style={{ width: '100%', padding: '0.5rem' }} />
+
+              <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold' }}>ขนาด (มิลลิเมตร)</label>
+                  <select value={editingProduct.size || 8} onChange={e => setEditingProduct({...editingProduct, size: parseInt(e.target.value)})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}>
+                    <option value="">ไม่มีขนาด (เช่น จี้)</option>
+                    {SIZE_OPTIONS.map(s => <option key={s} value={s}>{s} mm</option>)}
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold' }}>จำนวนสต๊อก (เม็ด/ชิ้น)</label>
+                  <input type="number" min="0" required value={editingProduct.stock_quantity ?? 0} onChange={e => setEditingProduct({...editingProduct, stock_quantity: parseInt(e.target.value)})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold' }}>ราคา (บาท)</label>
+                  <input type="number" required value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: parseFloat(e.target.value)})} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} />
+                </div>
               </div>
+
               <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.25rem' }}>ความหมาย (เพื่อโชว์ในใบเสร็จ)</label>
-                <textarea value={editingProduct.meaning || ''} onChange={e => setEditingProduct({...editingProduct, meaning: e.target.value})} style={{ width: '100%', padding: '0.5rem', height: '80px' }} />
+                <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold' }}>รูปภาพ (ถ่ายรูปหรือเลือกไฟล์)</label>
+                {editingProduct.img && (
+                  <img src={editingProduct.img} alt="Preview" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem', display: 'block' }} />
+                )}
+                <input type="file" accept="image/*" capture="environment" onChange={handleImageCapture} style={{ width: '100%', padding: '0.5rem' }} />
+                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>อัปโหลดแล้วจะบันทึกลง Vercel Blob อัตโนมัติเมื่อกดบันทึก</div>
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                  <label style={{ fontWeight: 'bold' }}>ความหมาย (เพื่อโชว์ในใบเสร็จ)</label>
+                  <button type="button" onClick={handleGenerateAI} disabled={generatingAI} style={{ background: '#8b5cf6', color: 'white', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                    {generatingAI ? 'กำลังแต่ง...' : '✨ ใช้ AI แต่งความหมาย'}
+                  </button>
+                </div>
+                <textarea value={editingProduct.meaning || ''} onChange={e => setEditingProduct({...editingProduct, meaning: e.target.value})} style={{ width: '100%', padding: '0.5rem', height: '80px', border: '1px solid #cbd5e1', borderRadius: '4px' }} placeholder="สามารถพิมพ์เอง หรือกดปุ่ม AI ด้านบน" />
               </div>
               
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
-                <button type="button" onClick={() => setEditingProduct(null)} style={{ padding: '0.5rem 1rem', background: '#e2e8f0' }}>ยกเลิก</button>
-                <button type="submit" style={{ padding: '0.5rem 1rem', background: '#0f172a', color: 'white' }}>บันทึกข้อมูล</button>
+                <button type="button" onClick={() => setEditingProduct(null)} style={{ padding: '0.5rem 1rem', background: '#e2e8f0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>ยกเลิก</button>
+                <button type="submit" style={{ padding: '0.5rem 1rem', background: '#0f172a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>บันทึกข้อมูล</button>
               </div>
             </form>
           </div>

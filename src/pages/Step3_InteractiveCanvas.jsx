@@ -11,16 +11,21 @@ export default function Step3_InteractiveCanvas({ onNext, onPrev, onUpdateData, 
   const [canvasItems, setCanvasItems] = useState(braceletConfig.length ? braceletConfig : Array(beadCount).fill(null));
   const [activeFilter, setActiveFilter] = useState('ทั้งหมด');
   
-  // Extract unique colors for filters based on actual products
+  // First, filter products to only match the selected size (or items without size like spacers)
+  const availableProducts = useMemo(() => {
+    return products.filter(p => !p.size || p.size === stoneSize);
+  }, [products, stoneSize]);
+
+  // Extract unique colors for filters based on available products
   const filters = useMemo(() => {
-    const colors = new Set(products.map(p => p.color).filter(Boolean));
+    const colors = new Set(availableProducts.map(p => p.color).filter(Boolean));
     return ['ทั้งหมด', ...Array.from(colors)];
-  }, [products]);
+  }, [availableProducts]);
   
   const filteredInventory = useMemo(() => {
-    if (activeFilter === 'ทั้งหมด') return products;
-    return products.filter(item => item.color === activeFilter || item.type === 'spacer' || item.type === 'charm');
-  }, [activeFilter, products]);
+    if (activeFilter === 'ทั้งหมด') return availableProducts;
+    return availableProducts.filter(item => item.color === activeFilter || item.type === 'spacer' || item.type === 'charm');
+  }, [activeFilter, availableProducts]);
 
   const handleAddItem = (item) => {
     const emptyIndex = canvasItems.findIndex(i => i === null);

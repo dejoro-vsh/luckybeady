@@ -20,7 +20,14 @@ const initialStones = [
 ];
 
 export default async function handler(req, res) {
+  // Add a safety check in production, but for now we allow resetting
+  const { reset } = req.query;
+
   try {
+    if (reset === 'true') {
+      await pool.sql`DROP TABLE IF EXISTS products`;
+    }
+
     // 1. Create table if not exists
     await pool.sql`
       CREATE TABLE IF NOT EXISTS products (
@@ -29,10 +36,10 @@ export default async function handler(req, res) {
         type VARCHAR(50) NOT NULL,
         color VARCHAR(50),
         price NUMERIC NOT NULL,
-        sizes JSONB,
+        size NUMERIC,
         img VARCHAR(255),
         meaning TEXT,
-        stock_status VARCHAR(50) DEFAULT 'in_stock'
+        stock_quantity INTEGER DEFAULT 0
       );
     `;
 
@@ -41,24 +48,10 @@ export default async function handler(req, res) {
     const count = parseInt(rows[0].count);
 
     if (count === 0) {
-      // Seed data
-      for (const item of initialStones) {
-        await pool.sql`
-          INSERT INTO products (id, name, type, color, price, sizes, img, meaning, stock_status)
-          VALUES (
-            ${item.id}, 
-            ${item.name}, 
-            ${item.type}, 
-            ${item.color || ''}, 
-            ${item.price}, 
-            ${JSON.stringify(item.sizes)}, 
-            ${item.img}, 
-            ${item.meaning || ''}, 
-            'in_stock'
-          )
-        `;
-      }
-      return res.status(200).json({ message: "Table created and seeded successfully", count: initialStones.length });
+      // Seed data (Optional, we can skip it or just add some examples)
+      // I'll keep the initial loop but adapt to new schema if needed. 
+      // But actually, letting the user add them manually via the new Admin UI is better.
+      return res.status(200).json({ message: "Table created and ready. You can now add products via Admin.", count: 0 });
     }
 
     return res.status(200).json({ message: "Table already exists and has data", count });
