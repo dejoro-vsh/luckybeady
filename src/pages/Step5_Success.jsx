@@ -63,8 +63,12 @@ export default function Step5_Success({ orderData, lineProfile }) {
           className="final-canvas-slot"
           style={{ transform: `translate(${x}px, ${y}px)` }}
         >
-          <div className="final-filled-item" style={{ backgroundColor: item.color || '#ccc' }}>
-            <span className="final-item-initial">{item.name.substring(0,2)}</span>
+          <div className="final-filled-item" style={{ backgroundColor: '#ccc', overflow: 'hidden' }}>
+            {item.img ? (
+              <img src={item.img} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <span className="item-initial">{item.name.substring(0,2)}</span>
+            )}
           </div>
         </div>
       );

@@ -78,8 +78,12 @@ export default function Step3_InteractiveCanvas({ onNext, onPrev, onUpdateData, 
           onClick={() => item && handleRemoveItem(i)}
         >
           {item ? (
-            <div className="filled-item" style={{ backgroundColor: item.color || '#ccc' }}>
-              <span className="item-initial">{item.name.substring(0,2)}</span>
+            <div className="filled-item" style={{ backgroundColor: '#ccc', overflow: 'hidden' }}>
+              {item.img ? (
+                <img src={item.img} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span className="item-initial">{item.name.substring(0,2)}</span>
+              )}
             </div>
           ) : (
             <span className="slot-number">{i + 1}</span>
@@ -135,7 +139,9 @@ export default function Step3_InteractiveCanvas({ onNext, onPrev, onUpdateData, 
       <div className="inventory-grid">
         {filteredInventory.map(item => (
           <div key={item.id} className="inventory-item" onClick={() => handleAddItem(item)}>
-            <div className="item-image" style={{ backgroundColor: item.color || '#ccc' }}></div>
+            <div className="item-image" style={{ backgroundColor: '#ccc', overflow: 'hidden' }}>
+              {item.img && <img src={item.img} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+            </div>
             <div className="item-details">
               <div className="item-name">{item.name}</div>
               <div className="item-price">฿{item.price}</div>
