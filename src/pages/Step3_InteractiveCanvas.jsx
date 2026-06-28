@@ -2,23 +2,25 @@ import React, { useState, useMemo } from 'react';
 import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
 import Button from '../components/Button';
-import { STONES, SPACERS, CHARMS } from '../data/products';
 import './Step3.css';
 
-export default function Step3_InteractiveCanvas({ onNext, onPrev, onUpdateData, orderData }) {
+export default function Step3_InteractiveCanvas({ onNext, onPrev, onUpdateData, orderData, products = [] }) {
   const { wristSize, stoneSize, braceletConfig = [] } = orderData;
   const beadCount = Math.round((wristSize + 2) / (stoneSize / 10)) || 24;
   
   const [canvasItems, setCanvasItems] = useState(braceletConfig.length ? braceletConfig : Array(beadCount).fill(null));
   const [activeFilter, setActiveFilter] = useState('ทั้งหมด');
   
-  const allInventory = [...STONES, ...SPACERS, ...CHARMS];
-  const filters = ['ทั้งหมด', 'น้ำเงิน', 'ชมพู', 'ดำ', 'เหลือง'];
+  // Extract unique colors for filters based on actual products
+  const filters = useMemo(() => {
+    const colors = new Set(products.map(p => p.color).filter(Boolean));
+    return ['ทั้งหมด', ...Array.from(colors)];
+  }, [products]);
   
   const filteredInventory = useMemo(() => {
-    if (activeFilter === 'ทั้งหมด') return allInventory;
-    return allInventory.filter(item => item.color === activeFilter || item.type === 'spacer' || item.type === 'charm');
-  }, [activeFilter, allInventory]);
+    if (activeFilter === 'ทั้งหมด') return products;
+    return products.filter(item => item.color === activeFilter || item.type === 'spacer' || item.type === 'charm');
+  }, [activeFilter, products]);
 
   const handleAddItem = (item) => {
     const emptyIndex = canvasItems.findIndex(i => i === null);

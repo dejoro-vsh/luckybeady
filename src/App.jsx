@@ -9,6 +9,8 @@ import './styles/global.css'
 function App() {
   const [step, setStep] = useState(1)
   const [lineProfile, setLineProfile] = useState(null)
+  const [products, setProducts] = useState([])
+  const [loadingProducts, setLoadingProducts] = useState(true)
   const [orderData, setOrderData] = useState({
     wristSize: 0,
     ownerName: '',
@@ -19,6 +21,18 @@ function App() {
   })
 
   useEffect(() => {
+    // Fetch dynamic products from Postgres
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setProducts(data);
+        setLoadingProducts(false);
+      })
+      .catch(err => {
+        console.error("Failed to load products", err);
+        setLoadingProducts(false);
+      });
+
     // 1. Check for Stripe redirect first
     const clientSecret = new URLSearchParams(window.location.search).get("payment_intent_client_secret");
     if (clientSecret) {
@@ -64,6 +78,10 @@ function App() {
   const nextStep = () => setStep(s => Math.min(s + 1, 5))
   const prevStep = () => setStep(s => Math.max(s - 1, 1))
 
+  if (loadingProducts) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#64748b' }}>กำลังโหลดข้อมูลสินค้า...</div>
+  }
+
   return (
     <div className="app-container">
       {step === 1 && (
@@ -79,6 +97,7 @@ function App() {
           onPrev={prevStep}
           onUpdateData={updateOrderData}
           currentSize={orderData.stoneSize}
+          products={products}
         />
       )}
       {step === 3 && (
@@ -87,6 +106,7 @@ function App() {
           onPrev={prevStep}
           onUpdateData={updateOrderData}
           orderData={orderData}
+          products={products}
         />
       )}
       {step === 4 && (

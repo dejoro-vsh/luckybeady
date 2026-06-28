@@ -8,18 +8,7 @@ import CheckoutForm from '../components/CheckoutForm';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-// Mock meanings for stones
-const STONE_MEANINGS = {
-  's1': 'ช่วยเสริมเสน่ห์ ความรัก และความเมตตา',
-  's2': 'เสริมดวงความรัก นำพามิตรภาพดีๆ',
-  's3': 'นำพาความสงบ ลดความเครียด คุ้มครองในการเดินทาง',
-  's4': 'ช่วยให้ใจเย็น สื่อสารอย่างมีประสิทธิภาพ',
-  's5': 'เสริมความมั่นใจ ลดความวิตกกังวล',
-  's6': 'ปกป้องคุ้มครองจากพลังงานลบ',
-  's7': 'เสริมวิสัยทัศน์ ความเด็ดขาด และความเป็นผู้นำ',
-  's8': 'กระตุ้นพลังงาน ความกล้าหาญ และความคิดสร้างสรรค์',
-  's9': 'บำบัดจิตใจ ให้นอนหลับสบาย และเสริมสติปัญญา'
-};
+
 
 export default function Step4_CheckoutSummary({ onPrev, orderData }) {
   const { wristSize, ownerName, stoneSize, braceletConfig, totalPrice } = orderData;
@@ -163,7 +152,7 @@ export default function Step4_CheckoutSummary({ onPrev, orderData }) {
             <div className="meaning-img" style={{backgroundColor: item.color}}></div>
             <div className="meaning-text">
               <h4>{item.name}</h4>
-              <p>{STONE_MEANINGS[item.id] || 'นำพาความโชคดีและพลังงานบวก'}</p>
+              <p>{item.meaning || 'นำพาความโชคดีและพลังงานบวก'}</p>
             </div>
           </div>
         ))}
