@@ -160,8 +160,8 @@ export default async function handler(req, res) {
 
     // 4. ALERT ADMINS
     try {
-      const { rows } = await pool.sql`SELECT line_user_id FROM admins`;
-      const adminIds = rows.map(r => r.line_user_id);
+      const { rows } = await pool.sql`SELECT user_id FROM admins`;
+      const adminIds = rows.map(r => r.user_id);
       
       if (adminIds.length > 0) {
         const adminMessage = {
