@@ -27,27 +27,31 @@ export default function Step5_Success({ orderData, lineProfile }) {
     setPaymentStatus('succeeded'); 
 
     // 2. Send LINE Receipt if not sent yet
-    if (!receiptSent && lineProfile?.userId) {
-      fetch('/api/send-line-receipt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: lineProfile.userId,
-          orderData: orderData
+    if (!receiptSent && paymentStatus === 'succeeded') {
+      const timer = setTimeout(() => {
+        fetch('/api/send-line-receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: lineProfile?.userId || null,
+            orderData: orderData
+          })
         })
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log("LINE Receipt API Response:", data);
-        if (!data.error) {
-          setReceiptSent(true);
-        } else {
-          console.error("API Error:", data.error, data.details);
-        }
-      })
-      .catch(err => console.error("Error sending receipt:", err));
+        .then(res => res.json())
+        .then(data => {
+          console.log("LINE Receipt API Response:", data);
+          if (!data.error) {
+            setReceiptSent(true);
+          } else {
+            console.error("API Error:", data.error, data.details);
+          }
+        })
+        .catch(err => console.error("Error sending receipt:", err));
+      }, 1500); // Wait 1.5s to give LIFF time to load profile if it hasn't yet
+
+      return () => clearTimeout(timer);
     }
-  }, [receiptSent, lineProfile, orderData]);
+  }, [receiptSent, lineProfile, orderData, paymentStatus]);
 
   const getFinalCanvasCircles = () => {
     const radius = 100; // 100px radius for the 200px circle
