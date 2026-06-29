@@ -153,7 +153,11 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${channelAccessToken}` },
         body: JSON.stringify({ to: userId, messages: messages })
       });
-      lineResultCustomer = await custRes.json();
+      lineResultCustomer = { 
+        response: await custRes.json(), 
+        status: custRes.status, 
+        attemptedUserId: userId 
+      };
     } else {
       lineResultCustomer = { error: 'No userId provided' };
     }
@@ -177,7 +181,11 @@ export default async function handler(req, res) {
             messages: [adminMessage, messages[0]]
           })
         });
-        lineResultAdmin = await admRes.json();
+        lineResultAdmin = {
+          response: await admRes.json(),
+          status: admRes.status,
+          attemptedAdminIds: adminIds
+        };
       } else {
         lineResultAdmin = { error: 'No admins found in database' };
       }
