@@ -5,15 +5,6 @@ const pool = createPool({
 });
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const { userId, action } = req.body;
-  if (!userId) {
-    return res.status(400).json({ error: 'Missing userId' });
-  }
-
   try {
     // Ensure table exists
     await pool.sql`
@@ -22,6 +13,20 @@ export default async function handler(req, res) {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+
+    if (req.method === 'GET') {
+      const { rows } = await pool.sql`SELECT * FROM admins`;
+      return res.status(200).json(rows);
+    }
+
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const { userId, action } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId' });
+    }
 
     if (action === 'subscribe') {
       await pool.sql`

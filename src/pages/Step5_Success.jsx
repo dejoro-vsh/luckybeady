@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Header from '../components/Header';
 import Button from '../components/Button';
 import './Step4.css'; // Reusing CSS from step 4
@@ -8,6 +8,7 @@ export default function Step5_Success({ orderData, lineProfile }) {
   const discountedPrice = Math.floor(totalPrice * 0.8);
   const [receiptSent, setReceiptSent] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState('loading');
+  const requestSentRef = useRef(false);
 
   const today = new Date().toLocaleDateString('th-TH', {
     day: 'numeric', month: 'long', year: 'numeric'
@@ -26,32 +27,35 @@ export default function Step5_Success({ orderData, lineProfile }) {
 
     setPaymentStatus('succeeded'); 
 
-    // 2. Send LINE Receipt if not sent yet
-    if (!receiptSent && paymentStatus === 'succeeded') {
-      const timer = setTimeout(() => {
-        fetch('/api/send-line-receipt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: lineProfile?.userId || null,
-            orderData: orderData
-          })
-        })
-        .then(res => res.json())
-        .then(data => {
-          console.log("LINE Receipt API Response:", data);
-          if (!data.error) {
-            setReceiptSent(true);
-          } else {
-            console.error("API Error:", data.error, data.details);
-          }
-        })
-        .catch(err => console.error("Error sending receipt:", err));
-      }, 1500); // Wait 1.5s to give LIFF time to load profile if it hasn't yet
+    // 2. Send LINE Receipt safely without duplicating
+    if (receiptSent || requestSentRef.current) return;
 
+    const sendRequest = (userId) => {
+      requestSentRef.current = true;
+      fetch('/api/send-line-receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: userId, orderData: orderData })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) setReceiptSent(true);
+      })
+      .catch(err => console.error("Error:", err));
+    };
+
+    if (lineProfile?.userId) {
+      sendRequest(lineProfile.userId);
+    } else {
+      // Wait up to 2 seconds for lineProfile, then send anyway
+      const timer = setTimeout(() => {
+        if (!requestSentRef.current) {
+          sendRequest(null);
+        }
+      }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [receiptSent, lineProfile, orderData, paymentStatus]);
+  }, [receiptSent, lineProfile, orderData]);
 
   const getFinalCanvasCircles = () => {
     const radius = 100; // 100px radius for the 200px circle

@@ -11,6 +11,7 @@ export default function AdminApp() {
   
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [admins, setAdmins] = useState([]);
   
   const [editingProduct, setEditingProduct] = useState(null);
   const [viewingOrder, setViewingOrder] = useState(null);
@@ -38,10 +39,19 @@ export default function AdminApp() {
       });
   };
 
+  const fetchAdmins = () => {
+    fetch('/api/admin/subscribe')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setAdmins(data);
+      });
+  };
+
   useEffect(() => {
     if (isAuth) {
       if (activeTab === 'products') fetchProducts();
       if (activeTab === 'orders') fetchOrders();
+      if (activeTab === 'admins') fetchAdmins();
     }
   }, [isAuth, activeTab]);
 
@@ -217,6 +227,21 @@ export default function AdminApp() {
         >
           🛒 รายการสั่งซื้อ
         </button>
+        <button 
+          onClick={() => setActiveTab('admins')}
+          style={{ 
+            padding: '1rem 2rem', 
+            background: 'none', 
+            border: 'none', 
+            borderBottom: activeTab === 'admins' ? '3px solid #10b981' : '3px solid transparent',
+            fontWeight: 'bold',
+            color: activeTab === 'admins' ? '#10b981' : '#64748b',
+            cursor: 'pointer',
+            fontSize: '1.1rem'
+          }}
+        >
+          👨‍💻 จัดการแอดมิน (รับแจ้งเตือน)
+        </button>
       </div>
 
       {activeTab === 'products' && (
@@ -333,6 +358,96 @@ export default function AdminApp() {
             </table>
           )}
         </>
+      )}
+
+      {activeTab === 'admins' && (
+        <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ marginBottom: '1rem' }}>ตั้งค่า LINE แจ้งเตือนแอดมิน</h2>
+          <p style={{ color: '#64748b', marginBottom: '2rem' }}>
+            หากแอดมินไม่ได้รับการแจ้งเตือนเวลาลูกค้าสั่งซื้อ แสดงว่า <strong>LINE User ID ของแอดมินในระบบผิดพลาด</strong><br />
+            คุณสามารถเพิ่ม LINE User ID ที่ถูกต้องได้ที่นี่
+          </p>
+          <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '2rem' }}>
+            <h3 style={{ marginBottom: '1rem', color: '#0f172a' }}>วิธีหา LINE User ID ของคุณ</h3>
+            <ol style={{ paddingLeft: '1.5rem', margin: 0, color: '#334155', lineHeight: '1.6' }}>
+              <li>ให้คุณเข้าไปสั่งซื้อสินค้าหน้าร้าน (ทดลองสั่ง) จนถึงหน้า <strong>สำเร็จ</strong> (ไม่ต้องห่วงว่าจะส่งไปหาใคร)</li>
+              <li>กลับมาที่หน้า Admin Dashboard นี้ ไปที่แท็บ <strong>🛒 รายการสั่งซื้อ</strong></li>
+              <li>คลิกปุ่ม <strong>🐞 เช็ค LINE</strong> ที่ออเดอร์ที่คุณเพิ่งสั่ง</li>
+              <li>ดูที่กล่อง <strong>สถานะส่งใบเสร็จหาลูกค้า</strong> จะมีบรรทัดที่เขียนว่า <code>attemptedUserId: "U82b61c39e8c..."</code></li>
+              <li>ให้คัดลอกรหัสนั้นมาใส่ในช่องด้านล่างนี้เลยครับ! (ขึ้นต้นด้วยตัว U ตัวใหญ่)</li>
+            </ol>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '2rem' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>เพิ่ม LINE User ID ของแอดมินใหม่</label>
+              <input 
+                id="newAdminId"
+                type="text" 
+                placeholder="เช่น U82b61c39e8c72bbe147fa62fb1b59dd6" 
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} 
+              />
+            </div>
+            <button 
+              onClick={() => {
+                const val = document.getElementById('newAdminId').value.trim();
+                if (!val) return alert('กรุณากรอก User ID');
+                fetch('/api/admin/subscribe', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ userId: val, action: 'subscribe' })
+                }).then(res => res.json()).then(data => {
+                  if (data.success) {
+                    alert('เพิ่มแอดมินเรียบร้อยแล้ว ลองสั่งซื้ออีกครั้งเพื่อทดสอบได้เลยครับ!');
+                    document.getElementById('newAdminId').value = '';
+                    fetchAdmins();
+                  } else alert('Error: ' + data.error);
+                });
+              }}
+              style={{ padding: '0.75rem 2rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              + บันทึก
+            </button>
+          </div>
+
+          <h3 style={{ marginBottom: '1rem' }}>รายชื่อแอดมินปัจจุบัน ({admins.length} คน)</h3>
+          {admins.length === 0 ? <p>ไม่มีแอดมินในระบบ</p> : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#f8fafc', borderRadius: '8px', overflow: 'hidden' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>LINE User ID</th>
+                  <th style={{ padding: '1rem', textAlign: 'left' }}>วันที่เพิ่ม</th>
+                  <th style={{ padding: '1rem', textAlign: 'center' }}>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {admins.map(a => (
+                  <tr key={a.user_id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '1rem', fontWeight: 'bold' }}>{a.user_id}</td>
+                    <td style={{ padding: '1rem', color: '#64748b' }}>{new Date(a.created_at).toLocaleString('th-TH')}</td>
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                      <button 
+                        onClick={() => {
+                          if (confirm('ยืนยันลบแอดมินคนนี้?')) {
+                            fetch('/api/admin/subscribe', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ userId: a.user_id, action: 'unsubscribe' })
+                            }).then(res => res.json()).then(data => {
+                              if (data.success) fetchAdmins();
+                            });
+                          }
+                        }}
+                        style={{ background: '#ef4444', color: 'white', padding: '0.25rem 0.5rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        ลบ
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       )}
 
       {editingProduct && activeTab === 'products' && (
