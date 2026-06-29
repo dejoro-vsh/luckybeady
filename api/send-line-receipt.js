@@ -185,6 +185,27 @@ export default async function handler(req, res) {
       lineResultAdmin = { error: adminErr.message };
     }
 
+    // 5. UPDATE LOGS IN DATABASE
+    if (orderId) {
+      try {
+        await pool.sql`
+          ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_log TEXT;
+        `;
+        await pool.sql`
+          ALTER TABLE orders ADD COLUMN IF NOT EXISTS admin_log TEXT;
+        `;
+        
+        await pool.sql`
+          UPDATE orders 
+          SET customer_log = ${JSON.stringify(lineResultCustomer)},
+              admin_log = ${JSON.stringify(lineResultAdmin)}
+          WHERE id = ${orderId}
+        `;
+      } catch (logErr) {
+        console.error('Failed to update logs in DB:', logErr);
+      }
+    }
+
     return res.status(200).json({ 
       success: true, 
       orderId, 

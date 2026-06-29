@@ -14,6 +14,7 @@ export default function AdminApp() {
   
   const [editingProduct, setEditingProduct] = useState(null);
   const [viewingOrder, setViewingOrder] = useState(null);
+  const [viewingDebug, setViewingDebug] = useState(null);
   const [loading, setLoading] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
 
@@ -284,12 +285,20 @@ export default function AdminApp() {
                           <li key={idx}>{item.name} x{item.qty}</li>
                         ))}
                       </ul>
-                      <button 
-                        onClick={() => setViewingOrder(o)}
-                        style={{ padding: '0.25rem 0.5rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
-                      >
-                        👁️ ดูแบบกำไล
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <button 
+                          onClick={() => setViewingOrder(o)}
+                          style={{ padding: '0.25rem 0.5rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                        >
+                          👁️ ดูแบบกำไล
+                        </button>
+                        <button 
+                          onClick={() => setViewingDebug(o)}
+                          style={{ padding: '0.25rem 0.5rem', background: '#94a3b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                        >
+                          🐞 เช็ค LINE
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )})}
@@ -420,6 +429,31 @@ export default function AdminApp() {
                 try { return JSON.parse(viewingOrder.bracelet_config || '[]').filter(i=>i).length; } catch(e){return 0;}
               })()} ชิ้น
             </div>
+          </div>
+        </div>
+      )}
+      {viewingDebug && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3>🐞 ข้อมูล Debug (ออเดอร์ #{viewingDebug.id})</h3>
+              <button onClick={() => setViewingDebug(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
+            </div>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <h4>สถานะส่งใบเสร็จหาลูกค้า (Customer Log)</h4>
+              <pre style={{ background: '#f8fafc', padding: '1rem', borderRadius: '4px', overflowX: 'auto', fontSize: '0.85rem', color: '#334155' }}>
+                {viewingDebug.customer_log ? JSON.stringify(JSON.parse(viewingDebug.customer_log), null, 2) : 'ไม่มีข้อมูล'}
+              </pre>
+            </div>
+            
+            <div>
+              <h4>สถานะแจ้งเตือนแอดมิน (Admin Log)</h4>
+              <pre style={{ background: '#f8fafc', padding: '1rem', borderRadius: '4px', overflowX: 'auto', fontSize: '0.85rem', color: '#334155' }}>
+                {viewingDebug.admin_log ? JSON.stringify(JSON.parse(viewingDebug.admin_log), null, 2) : 'ไม่มีข้อมูล'}
+              </pre>
+            </div>
+            
           </div>
         </div>
       )}
