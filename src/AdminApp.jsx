@@ -144,6 +144,27 @@ export default function AdminApp() {
     }
   };
 
+  const handleClearOrders = () => {
+    if (confirm('⚠️ คำเตือน: คุณต้องการลบข้อมูล "รายการสั่งซื้อทั้งหมด" ใช่หรือไม่? (ลบแล้วกู้คืนไม่ได้)')) {
+      setLoading(true);
+      fetch('/api/admin/clear-orders', { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert('ลบข้อมูลออเดอร์ทั้งหมดเรียบร้อยแล้ว');
+            fetchOrders();
+          } else {
+            alert('Error: ' + data.error);
+            setLoading(false);
+          }
+        })
+        .catch(err => {
+          alert('Error: ' + err.message);
+          setLoading(false);
+        });
+    }
+  };
+
   if (!isAuth) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -253,8 +274,14 @@ export default function AdminApp() {
 
       {activeTab === 'orders' && (
         <>
-          <div style={{ marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <h2>รายการสั่งซื้อล่าสุด</h2>
+            <button 
+              onClick={handleClearOrders}
+              style={{ padding: '0.5rem 1rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              🗑️ ล้างข้อมูลออเดอร์ทั้งหมด (Clear Data)
+            </button>
           </div>
           {loading ? <p>Loading orders...</p> : orders.length === 0 ? <p>ยังไม่มีรายการสั่งซื้อ</p> : (
             <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
